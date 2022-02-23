@@ -1,10 +1,203 @@
 
 
 
-#### Ez a második órai anyag. 
+#2_ORA
 
-## Témák: 
-## 1. Beszélgetés az olvasmányokról. 
-## 2. Gentle intro to R
-## 3. Adatkezelés R-ben
-## 4. GGplot
+install.packages("plyr")
+
+#csomagok
+
+library(plyr)
+library(dplyr)
+library(tidyverse)
+library(quanteda)
+library(tibble)
+library(readtext)
+
+#pelda tabla:
+
+
+data_frame <-  data.frame(szamok = 1:10,             
+                          betuk = letters[1:10],
+                          id = 20:11)
+
+saveRDS(data_frame, "data_frame.rds")
+
+data_frame <- readRDS("C:/Users/gelan/Desktop/SZISZ_KURZUS/data_frame.rds")
+
+
+#a head es tail funkciokkal megnezhetjuk a tablank egy reszet
+#az argumentumokat nem muszaj a syntaxban nevesiteni, eleg az ertekuket megadni.
+
+head(data_frame, n = 2)
+tail(data_frame, 2)
+
+
+#df oszlopainak megkaphatjuk a nevet
+names(data_frame)
+
+
+#dfm felbontasa reszekre
+#sorok szerint
+#Meghatarozhatjuk, hogy mely sorokat szeretnenk kiemelni egy df-bol
+
+data_frame_teteje <-  data_frame[1:5,]                   
+
+data_frame_alja <-  data_frame[6:10,] 
+
+#oszlopok szerint
+#nev szerint meghatarozhatjuk, hogy mely oszolopoktol akarunk megszabadulni,
+#illetve mely oszlopokat szeretnenk megtartani
+
+
+data_frame_id_nelkul <- data_frame[c("szamok", "betuk")]
+
+#de praktikusabb a select funkcio
+
+data_frame_id_nelkul <- data_frame %>% select(c("szamok", "betuk"))
+
+data_frame_id_nelkul2 <- data_frame %>% select(-id)
+
+data_frame_id_ja <- data_frame %>% select(-c("szamok", "betuk"))
+
+#egy valtozo hozzaadasa manualisan
+
+data_frame_szamozva <- data_frame %>% mutate(szamozas = row_number())
+
+
+#erdekesseg egyes csomagok azonos funkcio nevekkel rendelkeznek lasd:
+#"The following objects are masked from ‘package:"
+#ha elobb toltom be a dplyr-t mint a plyr-t akkor a 62-es sor egy hibauzenetet produkal
+
+
+#a tabla egy valtozojanak atnevezese
+
+names(data_frame)[names(data_frame) == "betuk"] <- "abc"
+
+#adattablak illesztese
+
+
+
+#Peldaul azert szeretnenk atirni egy valtozot, hogy ket tabla, amit osszeilleszteni szeretnenk
+#azonos nevu valtozoval rendelkezzenek
+
+
+#az rbind segitsegevel a sorok szerint osszekapcsolhatjuk az adatokat
+#az rbind fill segitsegevel pedigezt hianyzo adatok mellett is megtehetjuk
+
+data_frame2 <- data.frame(szamok = 11:15,
+                          betuk = letters[11:15],
+                          id = 10:6)
+
+data_frame3 <- rbind(data_frame,data_frame2)
+
+#mi tortenik, ha megismeteljuk az illesztest, de ez alkalommal a masodik tablabol kihagyunk egy
+#valtozot?
+
+data_frame2 <- data.frame(szamok = 11:15,
+                          id = 10:6)
+
+data_frame3 <- rbind(data_frame,data_frame2)
+
+data_frame3 <- rbind.fill(data_frame,data_frame2)
+
+#Ahhoz viszont, hogy oszlopokat egymas melle helyezzunk szuksegunk van egy id-ra
+#ami alapjan osszeillesztjuk oket
+
+data_frame4 <- data.frame(szamok2 = 30:21,
+                          id = 20:11)
+
+data_frame5 <- merge(data_frame, data_frame4)
+
+data_frame5 <- merge(data_frame, data_frame4, by = "id")
+
+#probaljuk ki az illesztes egy gyakorlati alkalmazasat is
+#tetelezzuk fel, hogy az adatok, amikkel dolgozunk szovegekbol es metaadatokbol allnak
+#ekkor a tablakat ossze kell illesztenunk
+
+teszt_text <- readtext("teszt.zip", encoding = "UTF-8")
+
+teszt_meta <- data.frame(metaadat = 1:3,
+                         doc_id = c("elso", "masodik", "harmadik"))
+
+teszt_egesz <- merge(teszt_text, teszt_meta, by = "doc_id", all = TRUE)
+
+
+teszt_text <- teszt_text %>% mutate(doc_id = str_remove(doc_id,"\\.txt"))
+
+#szamos str funkcio letezik str_extract, str_remove_all, str_extract_all, str_squish, str_trim stb.
+#a megadott mintazatban regex segitsegevel szinte barmilyen szoveg mintazatot meghatarozhatunk 
+#tehat a mutate fukcioval akar 
+
+
+
+#arrange es groupby funkciok
+
+data_frame <- data_frame %>% arrange(id)
+data_frame <- data_frame %>% arrange(desc(id))
+
+data_frame <- data_frame %>% mutate(dummy = c(0, 1, 1, 0, 0, 0, 1, 1, 0, 1))
+
+
+data_frame %>% summarise(mean = mean(szamok))
+data_frame %>% group_by(dummy) %>% summarise(mean = mean(szamok))
+
+#adatabrazolas a ggplot csomag segitsegevel
+install.packages("ggplot2")
+install.packages("plotly")
+library(ggplot2)
+library(plotly)
+
+
+names(trees)
+
+#data
+#mapping
+#geometric representation
+#facet
+#labels
+#theme
+
+
+#adatok+mapping
+ggplot (data = trees, mapping = aes(x = Girth, y = Volume))
+
+#adatok+mapping+geometric representation
+trees %>% ggplot (mapping = aes(x = Girth, y = Volume))+
+  geom_point(colour = "red")+
+  geom_line()
+
+summarise(trees, mean(Height))
+
+trees_data <- trees %>% mutate(height_dummy = Height > 76)
+
+trees_data %>% ggplot (mapping = aes(x = Girth, y = Volume, colour = height_dummy)) +
+  geom_point(size = 5)
+
+
+trees_data %>% ggplot (mapping = aes(x = Girth, y = Volume,
+                                     colour = height_dummy, shape = height_dummy)) +
+  geom_point(size = 2)+
+  geom_smooth()
+
+#facet
+trees_data %>% ggplot (mapping = aes(x = Girth, y = Volume)) +
+  geom_point()+
+  geom_line(colour = "blue") +
+  geom_smooth( se = FALSE)+
+  theme_bw()+
+  facet_wrap(~height_dummy)
+
+#labels
+trees_data %>% ggplot (mapping = aes(x = Girth, y = Volume, colour = height_dummy)) +
+  geom_point()+
+  geom_smooth()+
+  theme_bw()+
+  labs(title = "fa adatok", x = "vastagsag", y = "terfogat")
+
+#ggplotly interaktiv abra
+ggplotly(trees_data %>% ggplot (mapping = aes(x = Girth, y = Volume, colour = height_dummy)) +
+  geom_point()+
+  geom_smooth()+
+  theme_bw()+
+  labs(title = "fa adatok", x = "vastagsag", y = "terfogat"))
